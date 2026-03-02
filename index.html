@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>長官關切事項文字雲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&display=swap');
+        body {
+            /* 全面改用較粗的字體權重 */
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+        }
+        #canvas-wrapper {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            /* 雲朵底色：溫暖的淺米黃色，適合長輩閱讀且對比高 */
+            background-color: #fffbeb; 
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border: 4px solid #fef3c7;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 text-slate-900">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-wide">長官關切事項文字雲</h1>
+            <p class="text-xl md:text-2xl text-slate-700 font-bold">字體越大代表長官越強調、越重要</p>
+        </header>
+
+        <!-- 文字雲容器 -->
+        <div id="canvas-wrapper" class="mb-10">
+            <!-- 畫布尺寸放大以提高文字解析度 -->
+            <canvas id="word_cloud" width="900" height="550"></canvas>
+        </div>
+
+        <!-- 關鍵字解析 (字體放大、加粗、高對比) -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-2 border-slate-200">
+            <h2 class="text-3xl font-black border-b-4 border-slate-200 pb-3 mb-6 text-slate-900">核心關鍵字解析</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="bg-red-50 p-6 rounded-xl border-l-8 border-red-700">
+                    <h3 class="font-black text-red-900 text-2xl mb-2">發文 / 累積天數</h3>
+                    <p class="text-lg text-slate-800 font-bold leading-relaxed">長官最重視的執行動作。無論對業主或下包商，主動發文必須明確寫出「累積延遲天數」，作為未來求償的鐵證。</p>
+                </div>
+
+                <div class="bg-orange-50 p-6 rounded-xl border-l-8 border-orange-700">
+                    <h3 class="font-black text-orange-900 text-2xl mb-2">共同展延</h3>
+                    <p class="text-lg text-slate-800 font-bold leading-relaxed">極力避免的風險。警告絕對不能因為土建落後就跟著停擺，以免被判定為我方造成的共同展延而喪失求償權利。</p>
+                </div>
+
+                <div class="bg-blue-50 p-6 rounded-xl border-l-8 border-blue-700">
+                    <h3 class="font-black text-blue-900 text-2xl mb-2">第4條 / 第9條</h3>
+                    <p class="text-lg text-slate-800 font-bold leading-relaxed">重大戰略轉換。為了突破第7條僅限 1.25% 的補償天花板，指示未來追加費用必須改引用第4條與第9條。</p>
+                </div>
+
+                <div class="bg-emerald-50 p-6 rounded-xl border-l-8 border-emerald-700">
+                    <h3 class="font-black text-emerald-900 text-2xl mb-2">未收款 / 13億</h3>
+                    <p class="text-lg text-slate-800 font-bold leading-relaxed">嚴重的財務痛點。公司已投入龐大自有資金(13億)且遲未收款，嚴重影響現金流，要求積極突破找點請款。</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('word_cloud');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // ==========================================
+            // 步驟一：繪製雲朵遮罩 (Masking)
+            // ==========================================
+            
+            // 1. 將畫布外圍填滿純白色 (WordCloud2 會將有顏色的地方視為「不可繪製區域」)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+
+            // 2. 挖空雲朵形狀 (將雲朵區域的像素變為透明，讓 WordCloud2 可以在此繪製)
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            
+            // 以圓形交疊構造出豐滿的雲朵形狀 (置中於畫布)
+            const cx = width / 2;
+            const cy = height / 2;
+            
+            ctx.arc(cx, cy, 140, 0, Math.PI * 2);           // 中心大圓
+            ctx.arc(cx - 130, cy + 20, 100, 0, Math.PI * 2); // 左中圓
+            ctx.arc(cx + 130, cy + 20, 100, 0, Math.PI * 2); // 右中圓
+            ctx.arc(cx - 70, cy - 80, 110, 0, Math.PI * 2);  // 左上圓
+            ctx.arc(cx + 70, cy - 80, 110, 0, Math.PI * 2);  // 右上圓
+            ctx.arc(cx - 220, cy + 40, 70, 0, Math.PI * 2);  // 最左側小圓
+            ctx.arc(cx + 220, cy + 40, 70, 0, Math.PI * 2);  // 最右側小圓
+            ctx.arc(cx - 70, cy + 90, 80, 0, Math.PI * 2);   // 左下圓
+            ctx.arc(cx + 70, cy + 90, 80, 0, Math.PI * 2);   // 右下圓
+            
+            ctx.fill();
+            
+            // 恢復預設繪圖模式
+            ctx.globalCompositeOperation = 'source-over';
+
+            // ==========================================
+            // 步驟二：文字與權重設定 (數值加大以放大字體)
+            // ==========================================
+            const words = [
+                ['發文', 100],
+                ['累積天數', 90],
+                ['共同展延', 85],
+                ['未收款', 75],
+                ['第4條', 65],
+                ['第9條', 65],
+                ['不可歸責', 55],
+                ['現金流', 50],
+                ['13億', 45],
+                ['下包商', 40],
+                ['倒扣天數', 40],
+                ['突破上限', 35],
+                ['第7條', 30],
+                ['CBS進版', 30],
+                ['EOT', 25],
+                ['背對背', 25],
+                ['追加費用', 25],
+                ['廠商證明', 20],
+                ['主動', 20]
+            ];
+
+            // ==========================================
+            // 步驟三：啟動 WordCloud
+            // ==========================================
+            WordCloud(canvas, {
+                list: words,
+                fontFamily: '"Noto Sans TC", sans-serif',
+                fontWeight: '900', // 極粗體，極大提升長輩閱讀清晰度
+                clearCanvas: false, // 關閉清空畫布，保留我們先畫好的白色遮罩
+                backgroundColor: 'transparent', // 讓底部的淺米黃色透出來
+                // 為了方便閱讀，全部設定為正向水平 (不旋轉)
+                minRotation: 0,
+                maxRotation: 0,
+                rotateRatio: 0, 
+                gridSize: 12, // 網格間距，避免字與字過於擁擠
+                weightFactor: function (size) {
+                    // 放大的乘數，保證字體夠大
+                    return size * 0.9;
+                },
+                color: function (word, weight) {
+                    // 使用極高對比的深色系 (深紅、深藍、深綠、深紫)
+                    if (weight >= 85) return '#7f1d1d'; // 深紅色 (最重要)
+                    if (weight >= 65) return '#0c4a6e'; // 深海藍色
+                    if (weight >= 45) return '#064e3b'; // 深墨綠色
+                    if (weight >= 30) return '#4c1d95'; // 深紫色
+                    return '#1e293b'; // 極深灰藍色
+                },
+                shrinkToFit: true,
+                drawOutOfBound: false
+            });
+        });
+    </script>
+</body>
+</html>
